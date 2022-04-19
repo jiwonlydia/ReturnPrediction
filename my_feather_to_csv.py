@@ -2,7 +2,7 @@ import pickle as pkl
 import pyarrow.feather as feather
 import pandas as pd
 
-with open('chars60_raw_imputed.feather', 'rb') as f:
+with open('chars60_raw_imputed_sp500.feather', 'rb') as f:
     chars = feather.read_feather(f)
 
 # with open('chars60_rank_imputed.feather', 'rb') as f:
@@ -21,10 +21,10 @@ chars_2020s = chars[(chars['year'] >= 2020) & (chars['year'] < 2030)]
 # raw
 # chars_1970s.to_csv('chars60_raw_1970s.csv', index=0)
 # chars_1980s.to_csv('chars60_raw_1980s.csv', index=0)
-chars_1990s.to_csv('chars60_raw_1990s.csv', index=0)
-chars_2000s.to_csv('chars60_raw_2000s.csv', index=0)
-chars_2010s.to_csv('chars60_raw_2010s.csv', index=0)
-chars_2020s.to_csv('chars60_raw_2020s.csv', index=0)
+chars_1990s.to_csv('chars60_raw_1990s_sp500.csv', index=0)
+chars_2000s.to_csv('chars60_raw_2000s_sp500.csv', index=0)
+chars_2010s.to_csv('chars60_raw_2010s_sp500.csv', index=0)
+chars_2020s.to_csv('chars60_raw_2020s_sp500.csv', index=0)
 
 # rank
 # chars_1970s.to_csv('chars60_rank_1970s.csv', index=0)
