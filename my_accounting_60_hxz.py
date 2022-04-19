@@ -77,7 +77,7 @@ comp = conn.raw_sql("""
                     and f.popsrc = 'D'
                     and f.consol = 'C'
                     and f.datadate >= '01/01/1996'
-                    and f.datadate <= '12/31/2021'
+                    and f.datadate <= '12/31/2000'
                     """)
 
 
@@ -124,14 +124,14 @@ comp = comp.dropna(subset=['at'])
 # Select variables from the CRSP monthly stock and event datasets
 crsp = conn.raw_sql("""
                       select a.prc, a.ret, a.retx, a.shrout, a.vol, a.cfacpr, a.cfacshr, a.date, a.permno, a.permco,
-                      b.ticker, b.ncusip, b.shrcd, b.exchcd
+                      b.comnam, b.ticker, b.ncusip, b.shrcd, b.exchcd
                       from crsp.msf as a
                       left join crsp.msenames as b
                       on a.permno=b.permno
                       and b.namedt<=a.date
                       and a.date<=b.nameendt
                       where a.date >= '01/01/1996'
-                      and a.date <= '12/31/2021'
+                      and a.date <= '12/31/2000'
                       and b.exchcd between 1 and 3
                       """)
 
@@ -173,6 +173,22 @@ crsp2 = pd.merge(crsp1, crsp_summe, how='inner', on=['monthend', 'permco'])
 # sort by permno and date and also drop duplicates
 crsp2 = crsp2.sort_values(by=['permno', 'monthend']).drop_duplicates()
 
+### S&P 500 membership
+sp500 = conn.raw_sql("""
+                        select a.*, b.date
+                        from crsp.msp500list as a,
+                        crsp.msf as b
+                        where a.permno=b.permno
+                        and b.date >= a.start and b.date<= a.ending
+                        and b.date>='01/01/1996'
+                        and b.date <= '12/31/2000'
+                        order by date;
+                        """, date_cols=['start', 'ending', 'date'])
+
+print('length of sp500 permno : ', len(sp500['permno'].unique()))
+
+crsp500 = pd.merge(crsp2, sp500, on=['permno','date'], how='inner')
+print(crsp500.sample(5))
 
 ### CCM Block
 # * 이 데이터(crsp.ccmxpf_linktable)에 접근 권한이 없음 
@@ -235,9 +251,9 @@ comp['jdate'] = comp['datadate'] + MonthEnd(4)
 
 # link comp and crsp
 comp['ncusip'] = comp['cusip'].apply(lambda x: str(x)[:8])
-crsp2 = crsp2.rename(columns={'monthend': 'jdate'})
-data_rawa = pd.merge(crsp2, comp, how='inner', on=['ncusip','jdate'])
-
+# crsp2 대신 crsp500 merge
+crsp500 = crsp500.rename(columns={'monthend': 'jdate'})
+data_rawa = pd.merge(crsp500, comp, how='inner', on=['ncusip','jdate'])
 # filter exchcd & shrcd
 data_rawa = data_rawa[((data_rawa['exchcd'] == 1) | (data_rawa['exchcd'] == 2) | (data_rawa['exchcd'] == 3)) &
                    ((data_rawa['shrcd'] == 10) | (data_rawa['shrcd'] == 11))]
@@ -660,7 +676,7 @@ comp = conn.raw_sql("""
                     and f.popsrc = 'D'
                     and f.consol = 'C'
                     and f.datadate >= '01/01/1996'
-                    and f.datadate <= '12/31/2021'
+                    and f.datadate <= '12/31/2000'
                     """)
 
 
@@ -1076,7 +1092,7 @@ crsp_mom = conn.raw_sql("""
                         select permno, date, ret, retx, prc, shrout, vol
                         from crsp.msf
                         where date >= '01/01/1996'
-                        and date <= '12/31/2021'
+                        and date <= '12/31/2000'
                         """)
 
 crsp_mom['permno'] = crsp_mom['permno'].astype(int)
@@ -1231,7 +1247,7 @@ data_rawa['adm'] = data_rawa['xad']/data_rawa['me']
 data_rawa['dy'] = data_rawa['dvt']/data_rawa['me']
 
 # Annual Accounting Variables
-chars_a = data_rawa[['ticker','cusip', 'ncusip', 'gvkey', 'permno', 'exchcd', 'shrcd', 'datadate', 'jdate',
+chars_a = data_rawa[['comnam','ticker','cusip', 'ncusip', 'gvkey', 'permno', 'exchcd', 'shrcd', 'datadate', 'jdate',
                      'sic', 'ret', 'retx', 'retadj', 'acc', 'agr', 'bm', 'cfp', 'ep', 'ni', 'op',
                      'rsup', 'cash', 'chcsho',
                      'rd', 'cashdebt', 'pctacc', 'gma', 'lev', 'rdm', 'adm', 'sgr', 'sp', 'invest', 'roe',
@@ -1244,6 +1260,11 @@ chars_a = data_rawa[['ticker','cusip', 'ncusip', 'gvkey', 'permno', 'exchcd', 's
                      'me_ia', 'turn', 'dolvol']]
 chars_a.reset_index(drop=True, inplace=True)
 
+print('chars_a')
+print('comnam', len(chars_a['comnam'].unique()))
+print('permno', len(chars_a['permno'].unique()))
+print('ticker', len(chars_a['ticker'].unique()))
+print('ncusip', len(chars_a['ncusip'].unique()))
 
 ### Quarterly
 
@@ -1278,7 +1299,7 @@ data_rawq['rsup'] = (data_rawq['saleq'] - data_rawq['saleq_l4'])/data_rawq['me']
 data_rawq['sgrvol'] = chars_std(0, 15, data_rawq, 'rsup')
 
 # Quarterly Accounting Variables
-chars_q = data_rawq[['ticker', 'gvkey', 'permno', 'datadate', 'jdate', 'sic', 'exchcd', 'shrcd',
+chars_q = data_rawq[['comnam', 'ticker', 'gvkey', 'permno', 'datadate', 'jdate', 'sic', 'exchcd', 'shrcd',
                      'ret', 'retx', 'retadj', 'acc', 'bm', 'cfp',
                      'ep', 'agr', 'ni', 'op', 'cash', 'chcsho', 'rd', 'cashdebt', 'pctacc', 'gma', 'lev',
                      'rdm', 'sgr', 'sp', 'invest', 'rd_sale', 'lgr', 'roa', 'depr', 'egr', 'roe',
@@ -1288,9 +1309,14 @@ chars_q = data_rawq[['ticker', 'gvkey', 'permno', 'datadate', 'jdate', 'sic', 'e
                      'turn', 'dolvol']]
 chars_q.reset_index(drop=True, inplace=True)
 
+print('data_rawq')
+print('comnam', len(data_rawq['comnam'].unique()))
+print('permno', len(data_rawq['permno'].unique()))
+print('ticker', len(data_rawq['ticker'].unique()))
+print('ncusip', len(data_rawq['ncusip'].unique()))
 
-with open('chars_a_60.feather', 'wb') as f:
+with open('chars_a_60_sp500.feather', 'wb') as f:
     feather.write_feather(chars_a, f)
 
-with open('chars_q_60.feather', 'wb') as f:
+with open('chars_q_60_sp500.feather', 'wb') as f:
     feather.write_feather(chars_q, f)
