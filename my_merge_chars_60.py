@@ -6,15 +6,13 @@ import pickle as pkl
 import pyarrow.feather as feather
 from pandas.tseries.offsets import *
 
-with open('chars_a_60.feather', 'rb') as f:
+with open('chars_a_60_sp500.feather', 'rb') as f:
     chars_a = feather.read_feather(f)
 
 chars_a = chars_a.dropna(subset=['permno'])
 chars_a[['permno', 'gvkey']] = chars_a[['permno', 'gvkey']].astype(int)
 chars_a['jdate'] = pd.to_datetime(chars_a['jdate'])
 chars_a = chars_a.drop_duplicates(['permno', 'jdate'])
-
-
 
 # with open('beta.feather', 'rb') as f:
 #     beta = feather.read_feather(f)
@@ -158,7 +156,7 @@ chars_a = pd.merge(chars_a, ill, how='left', on=['permno', 'jdate'])
 
 
 # save data
-with open('chars_a_raw.feather', 'wb') as f:
+with open('chars_a_raw_sp500.feather', 'wb') as f:
     feather.write_feather(chars_a, f)
 
 
@@ -166,7 +164,7 @@ with open('chars_a_raw.feather', 'wb') as f:
 #     In order to keep the naming tidy, we need to make another chars_q_raw, which is just a temporary dataframe       #
 ########################################################################################################################
 
-with open('chars_q_60.feather', 'rb') as f:
+with open('chars_q_60_sp500.feather', 'rb') as f:
     chars_q = feather.read_feather(f)
 
 chars_q = chars_q.dropna(subset=['permno'])
@@ -319,7 +317,7 @@ chars_q = pd.merge(chars_q, ill, how='left', on=['permno', 'jdate'])
 
 
 # save data
-with open('chars_q_raw.feather', 'wb') as f:
+with open('chars_q_raw_sp500.feather', 'wb') as f:
     feather.write_feather(chars_q, f)
 
 
