@@ -67,15 +67,15 @@ chars_a = chars_a.drop_duplicates(['permno', 'jdate'])
 # chars_a = pd.merge(chars_a, sue, how='left', on=['permno', 'jdate'])
 
 
-# with open('myre.feather', 'rb') as f:
-#     re = feather.read_feather(f)
+with open('../feather_files/myre.feather', 'rb') as f:
+    re = feather.read_feather(f)
 
-# re['permno'] = re['permno'].astype(int)
-# re['jdate'] = pd.to_datetime(re['date']) + MonthEnd(0)
-# re = re[['permno', 'jdate', 're']]
-# re = re.drop_duplicates(['permno', 'jdate'])
+re['permno'] = re['permno'].astype(int)
+re['jdate'] = pd.to_datetime(re['date']) + MonthEnd(0)
+re = re[['permno', 'jdate', 're']]
+re = re.drop_duplicates(['permno', 'jdate'])
 
-# chars_a = pd.merge(chars_a, re, how='left', on=['permno', 'jdate'])
+chars_a = pd.merge(chars_a, re, how='left', on=['permno', 'jdate'])
 
 
 # with open('abr.feather', 'rb') as f:
@@ -133,15 +133,15 @@ ill = ill.drop_duplicates(['permno', 'jdate'])
 chars_a = pd.merge(chars_a, ill, how='left', on=['permno', 'jdate'])
 
 
-# with open('std_turn.feather', 'rb') as f:
-#     std_turn = feather.read_feather(f)
+with open('../feather_files/std_turn.feather', 'rb') as f:
+    std_turn = feather.read_feather(f)
 
-# std_turn['permno'] = std_turn['permno'].astype(int)
-# std_turn['jdate'] = pd.to_datetime(std_turn['date']) + MonthEnd(0)
-# std_turn = std_turn[['permno', 'jdate', 'std_turn']]
-# std_turn = std_turn.drop_duplicates(['permno', 'jdate'])
+std_turn['permno'] = std_turn['permno'].astype(int)
+std_turn['jdate'] = pd.to_datetime(std_turn['date']) + MonthEnd(0)
+std_turn = std_turn[['permno', 'jdate', 'std_turn']]
+std_turn = std_turn.drop_duplicates(['permno', 'jdate'])
 
-# chars_a = pd.merge(chars_a, std_turn, how='left', on=['permno', 'jdate'])
+chars_a = pd.merge(chars_a, std_turn, how='left', on=['permno', 'jdate'])
 
 
 # with open('zerotrade.feather', 'rb') as f:
@@ -228,15 +228,15 @@ chars_q = chars_q.drop_duplicates(['permno', 'jdate'])
 # chars_q = pd.merge(chars_q, sue, how='left', on=['permno', 'jdate'])
 
 
-# with open('myre.feather', 'rb') as f:
-#     re = feather.read_feather(f)
+with open('../feather_files/myre.feather', 'rb') as f:
+    re = feather.read_feather(f)
 
-# re['permno'] = re['permno'].astype(int)
-# re['jdate'] = pd.to_datetime(re['date']) + MonthEnd(0)
-# re = re[['permno', 'jdate', 're']]
-# re = re.drop_duplicates(['permno', 'jdate'])
+re['permno'] = re['permno'].astype(int)
+re['jdate'] = pd.to_datetime(re['date']) + MonthEnd(0)
+re = re[['permno', 'jdate', 're']]
+re = re.drop_duplicates(['permno', 'jdate'])
 
-# chars_q = pd.merge(chars_q, re, how='left', on=['permno', 'jdate'])
+chars_q = pd.merge(chars_q, re, how='left', on=['permno', 'jdate'])
 
 
 # with open('abr.feather', 'rb') as f:
@@ -294,15 +294,15 @@ ill = ill.drop_duplicates(['permno', 'jdate'])
 chars_q = pd.merge(chars_q, ill, how='left', on=['permno', 'jdate'])
 
 
-# with open('std_turn.feather', 'rb') as f:
-#     std_turn = feather.read_feather(f)
+with open('../feather_files/std_turn.feather', 'rb') as f:
+    std_turn = feather.read_feather(f)
 
-# std_turn['permno'] = std_turn['permno'].astype(int)
-# std_turn['jdate'] = pd.to_datetime(std_turn['date']) + MonthEnd(0)
-# std_turn = std_turn[['permno', 'jdate', 'std_turn']]
-# std_turn = std_turn.drop_duplicates(['permno', 'jdate'])
+std_turn['permno'] = std_turn['permno'].astype(int)
+std_turn['jdate'] = pd.to_datetime(std_turn['date']) + MonthEnd(0)
+std_turn = std_turn[['permno', 'jdate', 'std_turn']]
+std_turn = std_turn.drop_duplicates(['permno', 'jdate'])
 
-# chars_q = pd.merge(chars_q, std_turn, how='left', on=['permno', 'jdate'])
+chars_q = pd.merge(chars_q, std_turn, how='left', on=['permno', 'jdate'])
 
 
 # with open('zerotrade.feather', 'rb') as f:
