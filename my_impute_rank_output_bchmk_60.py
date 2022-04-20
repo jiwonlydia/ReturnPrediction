@@ -8,7 +8,7 @@ from functions import *
 ####################
 #    All Stocks    #
 ####################
-with open('chars_q_raw_sp500.feather', 'rb') as f:
+with open('../feather_files/chars_q_raw_cusip.feather', 'rb') as f:
     chars_q = feather.read_feather(f)
 
 chars_q = chars_q.dropna(subset=['permno'])
@@ -16,7 +16,7 @@ chars_q[['permno', 'gvkey']] = chars_q[['permno', 'gvkey']].astype(int)
 chars_q['jdate'] = pd.to_datetime(chars_q['jdate'])
 chars_q = chars_q.drop_duplicates(['permno', 'jdate'])
 
-with open('chars_a_raw_sp500.feather', 'rb') as f:
+with open('../feather_files/chars_a_raw_cusip.feather', 'rb') as f:
     chars_a = feather.read_feather(f)
 
 chars_a = chars_a.dropna(subset=['permno'])
@@ -101,7 +101,7 @@ df = df.drop(['jdate'], axis=1)  # now we only keep the date of return
 df = df.dropna(subset=['ret']).reset_index(drop=True)
 
 # save raw data
-with open('chars60_raw_no_impute_sp500.feather', 'wb') as f:
+with open('../feather_files/chars60_raw_no_impute_cusip.feather', 'wb') as f:
     feather.write_feather(df, f)
 
 # impute missing values, you can choose different func form functions.py, such as ffi49/ffi10
@@ -124,7 +124,7 @@ df_impute = df_impute[df_impute['year'] >= 1996]
 df_impute = df_impute.drop(['year'], axis=1)
 df_impute = df_impute.fillna(0) ##### 내가 추가한 코드
 
-with open('chars60_raw_imputed.feather_sp500', 'wb') as f:
+with open('../feather_files/chars60_raw_imputed.feather_cusip', 'wb') as f:
     feather.write_feather(df_impute, f)
 
 # standardize raw data
@@ -137,7 +137,7 @@ df_rank = df_rank[df_rank['year']>=1996]
 df_rank = df_rank.drop(['year'], axis=1)
 df_rank['log_me'] = np.log(df_rank['lag_me'])
 
-with open('chars60_rank_no_impute.feather_sp500', 'wb') as f:
+with open('../feather_files/chars60_rank_no_impute.feather_cusip', 'wb') as f:
     feather.write_feather(df_rank, f)
 
 # standardize imputed data
@@ -149,7 +149,7 @@ df_rank = df_rank[df_rank['year'] >= 1996]
 df_rank = df_rank.drop(['year'], axis=1)
 df_rank['log_me'] = np.log(df_rank['lag_me'])
 
-with open('chars60_rank_imputed.feather_sp500', 'wb') as f:
+with open('../feather_files/chars60_rank_imputed.feather_cusip', 'wb') as f:
     feather.write_feather(df_rank, f)
 
 # ####################
