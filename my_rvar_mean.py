@@ -167,6 +167,6 @@ crsp = crsp.rename(columns={'rvar': 'rvar_mean'})
 crsp = crsp.reset_index(drop=True)
 crsp = crsp[['permno', 'date', 'rvar_mean']]
 
-with open('rvar_mean.feather', 'wb') as f:
+with open('../feather_files/rvar_mean.feather', 'wb') as f:
     feather.write_feather(crsp, f)
     

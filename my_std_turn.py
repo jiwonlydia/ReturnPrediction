@@ -158,5 +158,5 @@ crsp = crsp.dropna(subset=['std_turn'])  # drop NA due to rolling
 crsp = crsp.reset_index(drop=True)
 crsp = crsp[['permno', 'date', 'std_turn']]
 
-with open('std_turn.feather', 'wb') as f:
+with open('../feather_files/std_turn.feather', 'wb') as f:
     feather.write_feather(crsp, f)
