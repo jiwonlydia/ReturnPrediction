@@ -6,7 +6,7 @@ import pickle as pkl
 import pyarrow.feather as feather
 from pandas.tseries.offsets import *
 
-with open('chars_a_60_sp500.feather', 'rb') as f:
+with open('../feather_files/chars_a_60_sp500.feather', 'rb') as f:
     chars_a = feather.read_feather(f)
 
 chars_a = chars_a.dropna(subset=['permno'])
@@ -100,7 +100,7 @@ chars_a = chars_a.drop_duplicates(['permno', 'jdate'])
 # chars_a = pd.merge(chars_a, baspread, how='left', on=['permno', 'jdate'])
 
 
-with open('maxret.feather', 'rb') as f:
+with open('../feather_files/maxret.feather', 'rb') as f:
     maxret = feather.read_feather(f)
 
 maxret['permno'] = maxret['permno'].astype(int)
@@ -111,7 +111,7 @@ maxret = maxret.drop_duplicates(['permno', 'jdate'])
 chars_a = pd.merge(chars_a, maxret, how='left', on=['permno', 'jdate'])
 
 
-with open('std_dolvol.feather', 'rb') as f:
+with open('../feather_files/std_dolvol.feather', 'rb') as f:
     std_dolvol = feather.read_feather(f)
 
 std_dolvol['permno'] = std_dolvol['permno'].astype(int)
@@ -122,7 +122,7 @@ std_dolvol = std_dolvol.drop_duplicates(['permno', 'jdate'])
 chars_a = pd.merge(chars_a, std_dolvol, how='left', on=['permno', 'jdate'])
 
 
-with open('ill.feather', 'rb') as f:
+with open('../feather_files/ill.feather', 'rb') as f:
     ill = feather.read_feather(f)
 
 ill['permno'] = ill['permno'].astype(int)
@@ -156,7 +156,7 @@ chars_a = pd.merge(chars_a, ill, how='left', on=['permno', 'jdate'])
 
 
 # save data
-with open('chars_a_raw_sp500.feather', 'wb') as f:
+with open('../feather_files/chars_a_raw_cusip.feather', 'wb') as f:
     feather.write_feather(chars_a, f)
 
 
@@ -164,7 +164,7 @@ with open('chars_a_raw_sp500.feather', 'wb') as f:
 #     In order to keep the naming tidy, we need to make another chars_q_raw, which is just a temporary dataframe       #
 ########################################################################################################################
 
-with open('chars_q_60_sp500.feather', 'rb') as f:
+with open('../feather_files/chars_q_60_cusip.feather', 'rb') as f:
     chars_q = feather.read_feather(f)
 
 chars_q = chars_q.dropna(subset=['permno'])
@@ -261,7 +261,7 @@ chars_q = chars_q.drop_duplicates(['permno', 'jdate'])
 # chars_q = pd.merge(chars_q, baspread, how='left', on=['permno', 'jdate'])
 
 
-with open('maxret.feather', 'rb') as f:
+with open('../feather_files/maxret.feather', 'rb') as f:
     maxret = feather.read_feather(f)
 
 maxret['permno'] = maxret['permno'].astype(int)
@@ -272,7 +272,7 @@ maxret = maxret.drop_duplicates(['permno', 'jdate'])
 chars_q = pd.merge(chars_q, maxret, how='left', on=['permno', 'jdate'])
 
 
-with open('std_dolvol.feather', 'rb') as f:
+with open('../feather_files/std_dolvol.feather', 'rb') as f:
     std_dolvol = feather.read_feather(f)
 
 std_dolvol['permno'] = std_dolvol['permno'].astype(int)
@@ -283,7 +283,7 @@ std_dolvol = std_dolvol.drop_duplicates(['permno', 'jdate'])
 chars_q = pd.merge(chars_q, std_dolvol, how='left', on=['permno', 'jdate'])
 
 
-with open('ill.feather', 'rb') as f:
+with open('../feather_files/ill.feather', 'rb') as f:
     ill = feather.read_feather(f)
 
 ill['permno'] = ill['permno'].astype(int)
@@ -317,7 +317,7 @@ chars_q = pd.merge(chars_q, ill, how='left', on=['permno', 'jdate'])
 
 
 # save data
-with open('chars_q_raw_sp500.feather', 'wb') as f:
+with open('../feather_files/chars_q_raw_cusip.feather', 'wb') as f:
     feather.write_feather(chars_q, f)
 
 
