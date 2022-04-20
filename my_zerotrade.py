@@ -164,5 +164,5 @@ crsp = crsp.dropna(subset=['zerotrade'])  # drop NA due to rolling
 crsp = crsp.reset_index(drop=True)
 crsp = crsp[['permno', 'date', 'zerotrade']]
 
-with open('zerotrade.feather', 'wb') as f:
+with open('../feather_files/zerotrade.feather', 'wb') as f:
     feather.write_feather(crsp, f)
