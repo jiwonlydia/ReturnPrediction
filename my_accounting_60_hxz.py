@@ -724,7 +724,8 @@ comp['ibq'] = np.where(comp['ibq'].isnull(), comp['ibq_old'], comp['ibq'])  # fo
 
 # merge ccm2 and crsp2
 # crsp2['jdate'] = crsp2['monthend']
-data_rawq = pd.merge(crsp500, comp, how='inner', on=['cusip', 'jdate'])
+# data_rawq = pd.merge(crsp500, comp, how='inner', on=['cusip', 'jdate'])
+data_rawq = pd.merge(crsp2, comp, how='inner', on=['cusip', 'jdate'])
 
 # filter exchcd & shrcd
 data_rawq = data_rawq[((data_rawq['exchcd'] == 1) | (data_rawq['exchcd'] == 2) | (data_rawq['exchcd'] == 3)) &
