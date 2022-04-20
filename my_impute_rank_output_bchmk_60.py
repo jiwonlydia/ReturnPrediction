@@ -46,10 +46,12 @@ m_var_list = [
               #'beta',
               'ill',
               'maxret', 'mom12m', 'mom1m', 'mom36m', 'mom60m', 'mom6m', 
-            #   're', 'rvar_capm',
+              're', 
+            # 'rvar_capm',
             #   'rvar_ff3', 'rvar_mean', 'seas1a', 
               'std_dolvol', 
-            #   'std_turn', 'zerotrade', 
+              'std_turn', 
+            # 'zerotrade', 
             'me', 'dy',
             #   'turn', 'dolvol' # need to rerun the accounting to put them in to char_a
               ]
