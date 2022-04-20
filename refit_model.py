@@ -30,6 +30,7 @@ def refit_catboost(df, features, train_start=1996, train_end=2011, valid_size=5)
         #         에러 방지를 위해서 문자형으로 바꿔주기  
 
         # Set up 
+        from catboost import *
         cat_model = CatBoostRegressor(
             cat_features=cat_features,
             verbose = False, eval_metric="RMSE"
