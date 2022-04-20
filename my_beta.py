@@ -34,7 +34,7 @@ crsp = conn.raw_sql("""
                       left join ff.factors_daily as b
                       on a.date=b.date
                       where a.date >= '01/01/1996'
-                      and a.date <= '12/31/2021'
+                      and a.date <= '12/31/2000'
                       """)
 
 

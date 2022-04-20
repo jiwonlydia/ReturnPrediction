@@ -77,7 +77,7 @@ comp = conn.raw_sql("""
                     and f.popsrc = 'D'
                     and f.consol = 'C'
                     and f.datadate >= '01/01/1996'
-                    and f.datadate <= '12/31/2000'
+                    and f.datadate <= '12/31/2021'
                     """)
 
 
@@ -123,7 +123,7 @@ comp = comp.dropna(subset=['at'])
 # Restrictions will be applied later
 # Select variables from the CRSP monthly stock and event datasets
 crsp = conn.raw_sql("""
-                      select a.prc, a.ret, a.retx, a.shrout, a.vol, a.cfacpr, a.cfacshr, a.date, a.permno, a.permco,
+                      select a.prc, a.ret, a.retx, a.shrout, a.vol, a.cfacpr, a.cfacshr, a.date, a.permno, a.permco, a.cusip,
                       b.comnam, b.ticker, b.ncusip, b.shrcd, b.exchcd
                       from crsp.msf as a
                       left join crsp.msenames as b
@@ -131,9 +131,10 @@ crsp = conn.raw_sql("""
                       and b.namedt<=a.date
                       and a.date<=b.nameendt
                       where a.date >= '01/01/1996'
-                      and a.date <= '12/31/2000'
+                      and a.date <= '12/31/2021'
                       and b.exchcd between 1 and 3
-                      """)
+                      """, date_cols=['date'])
+
 
 
 # change variable format to int
@@ -174,21 +175,19 @@ crsp2 = pd.merge(crsp1, crsp_summe, how='inner', on=['monthend', 'permco'])
 crsp2 = crsp2.sort_values(by=['permno', 'monthend']).drop_duplicates()
 
 ### S&P 500 membership
-sp500 = conn.raw_sql("""
-                        select a.*, b.date
-                        from crsp.msp500list as a,
-                        crsp.msf as b
-                        where a.permno=b.permno
-                        and b.date >= a.start and b.date<= a.ending
-                        and b.date>='01/01/1996'
-                        and b.date <= '12/31/2000'
-                        order by date;
-                        """, date_cols=['start', 'ending', 'date'])
+# sp500 = conn.raw_sql("""
+#                     select a.*, b.date
+#                     from crsp.msp500list as a,
+#                     crsp.msf as b
+#                     where a.permno=b.permno
+#                     and b.date >= a.start and b.date<= a.ending
+#                     and b.date>='01/01/1996'
+#                     and b.date<='12/31/2021'
+#                     order by date;
+#                     """, date_cols=['start', 'ending', 'date'])
 
-print('length of sp500 permno : ', len(sp500['permno'].unique()))
-
-crsp500 = pd.merge(crsp2, sp500, on=['permno','date'], how='inner')
-print(crsp500.sample(5))
+# Merge with SP500 data
+# crsp500 = pd.merge(sp500, crsp2, how = 'left', on = ['permno','date'])
 
 ### CCM Block
 # * 이 데이터(crsp.ccmxpf_linktable)에 접근 권한이 없음 
@@ -250,10 +249,11 @@ comp['yearend'] = comp['datadate'] + YearEnd(0)
 comp['jdate'] = comp['datadate'] + MonthEnd(4)
 
 # link comp and crsp
-comp['ncusip'] = comp['cusip'].apply(lambda x: str(x)[:8])
-# crsp2 대신 crsp500 merge
-crsp500 = crsp500.rename(columns={'monthend': 'jdate'})
-data_rawa = pd.merge(crsp500, comp, how='inner', on=['ncusip','jdate'])
+comp['cusip'] = comp['cusip'].apply(lambda x: str(x)[:8])
+# crsp500 = crsp500.rename(columns={'monthend': 'jdate'})
+crsp2 = crsp2.rename(columns={'monthend': 'jdate'})
+# data_rawa = pd.merge(crsp500, comp, how='inner', on=['cusip','jdate'])
+data_rawa = pd.merge(crsp2, comp, how='inner', on=['cusip','jdate'])
 # filter exchcd & shrcd
 data_rawa = data_rawa[((data_rawa['exchcd'] == 1) | (data_rawa['exchcd'] == 2) | (data_rawa['exchcd'] == 3)) &
                    ((data_rawa['shrcd'] == 10) | (data_rawa['shrcd'] == 11))]
@@ -487,11 +487,11 @@ data_rawa['roic'] = (data_rawa['ebit'] - data_rawa['nopi'])/(data_rawa['ceq'] + 
 data_rawa['chinv'] = (data_rawa['invt'] - data_rawa['invt_l1'])/((data_rawa['at'] + data_rawa['at_l2'])/2)
 
 # pchsale_pchinvt
-data_rawa['pchsale_pchinvt'] = ((data_rawa['sale'] - data_rawa['sale_l1'])/data_rawa['sale_l1'])                               - ((data_rawa['invt']-data_rawa['invt_l1'])/data_rawa['invt_l1'])
+data_rawa['pchsale_pchinvt'] = ((data_rawa['sale'] - data_rawa['sale_l1'])/data_rawa['sale_l1']) - ((data_rawa['invt']-data_rawa['invt_l1'])/data_rawa['invt_l1'])
 
 # pchsale_pchrect
 data_rawa['rect_l1'] = data_rawa.groupby(['permno'])['rect'].shift(1)
-data_rawa['pchsale_pchrect'] = ((data_rawa['sale']-data_rawa['sale_l1'])/data_rawa['sale_l1'])                               - ((data_rawa['rect']-data_rawa['rect_l1'])/data_rawa['rect_l1'])
+data_rawa['pchsale_pchrect'] = ((data_rawa['sale']-data_rawa['sale_l1'])/data_rawa['sale_l1']) - ((data_rawa['rect']-data_rawa['rect_l1'])/data_rawa['rect_l1'])
 
 # pchgm_pchsale
 data_rawa['cogs_l1'] = data_rawa.groupby(['permno'])['cogs'].shift(1)
@@ -501,7 +501,7 @@ data_rawa['pchgm_pchsale'] = (((data_rawa['sale']-data_rawa['cogs'])
 
 # pchsale_pchxsga
 data_rawa['xsga_l1'] = data_rawa.groupby(['permno'])['xsga'].shift(1)
-data_rawa['pchsale_pchxsga'] = ((data_rawa['sale']-data_rawa['sale_l1'])/data_rawa['sale_l1'])                               - ((data_rawa['xsga']-data_rawa['xsga_l1'])/data_rawa['xsga_l1'])
+data_rawa['pchsale_pchxsga'] = ((data_rawa['sale']-data_rawa['sale_l1'])/data_rawa['sale_l1']) - ((data_rawa['xsga']-data_rawa['xsga_l1'])/data_rawa['xsga_l1'])
 
 # pchdepr
 data_rawa['dp_l1'] = data_rawa.groupby(['permno'])['dp'].shift(1)
@@ -533,7 +533,7 @@ data_rawa['grGW'] = np.select(condlist, choicelist, default=data_rawa['grGW'])
 data_rawa['currat'] = data_rawa['act']/data_rawa['lct']
 
 # pchcurrat
-data_rawa['pchcurrat'] = ((data_rawa['act']/data_rawa['lct'])-(data_rawa['act_l1']/data_rawa['lct_l1']))                         /(data_rawa['act_l1']/data_rawa['lct_l1'])
+data_rawa['pchcurrat'] = ((data_rawa['act']/data_rawa['lct'])-(data_rawa['act_l1']/data_rawa['lct_l1'])) / (data_rawa['act_l1']/data_rawa['lct_l1'])
 
 # quick
 data_rawa['quick'] = (data_rawa['act']-data_rawa['invt'])/data_rawa['lct']
@@ -553,7 +553,7 @@ data_rawa['salerec']= data_rawa['sale']/data_rawa['rect']
 data_rawa['saleinv'] = data_rawa['sale']/data_rawa['invt']
 
 # pchsaleinv
-data_rawa['pchsaleinv'] = ((data_rawa['sale']/data_rawa['invt'])-(data_rawa['sale_l1']/data_rawa['invt_l1']))                          /(data_rawa['sale_l1']/data_rawa['invt_l1'])
+data_rawa['pchsaleinv'] = ((data_rawa['sale']/data_rawa['invt'])-(data_rawa['sale_l1']/data_rawa['invt_l1']))/(data_rawa['sale_l1']/data_rawa['invt_l1'])
 
 # realestate
 data_rawa['realestate'] = (data_rawa['fatb']+data_rawa['fatl'])/data_rawa['ppegt']
@@ -622,7 +622,7 @@ data_rawa['chpm'] = (data_rawa['ib']/data_rawa['sale'])-(data_rawa['ib_l1']/data
 # ala
 data_rawa['gdwl'] = np.where(data_rawa['gdwl'].isnull(), 0, data_rawa['gdwl'])
 data_rawa['intan'] = np.where(data_rawa['intan'].isnull(), 0, data_rawa['intan'])
-data_rawa['ala'] = data_rawa['che']+0.75*(data_rawa['act']-data_rawa['che'])-                   0.5*(data_rawa['at']-data_rawa['act']-data_rawa['gdwl']-data_rawa['intan'])
+data_rawa['ala'] = data_rawa['che']+0.75*(data_rawa['act']-data_rawa['che'])-0.5*(data_rawa['at']-data_rawa['act']-data_rawa['gdwl']-data_rawa['intan'])
 
 # alm
 data_rawa['alm'] = data_rawa['ala']/(data_rawa['at']+data_rawa['prcc_f']*data_rawa['csho']-data_rawa['ceq'])
@@ -676,7 +676,7 @@ comp = conn.raw_sql("""
                     and f.popsrc = 'D'
                     and f.consol = 'C'
                     and f.datadate >= '01/01/1996'
-                    and f.datadate <= '12/31/2000'
+                    and f.datadate <= '12/31/2021'
                     """)
 
 
@@ -703,16 +703,16 @@ comp['jdate'] = comp['datadate'] + MonthEnd(4)  # we change quarterly lag here
 '''
 permno를 ncusip으로 변경해서 적용
 '''
-comp['ncusip'] = comp['cusip'].apply(lambda x: str(x)[:8])
+comp['cusip'] = comp['cusip'].apply(lambda x: str(x)[:8])
 
 # deal with ibq to make it as up-to-date as possible
 comp['rdq'] = pd.to_datetime(comp['rdq']) + MonthEnd(0)
 comp['rdq'] = np.where(comp['rdq'].isnull(), comp['jdate'], comp['rdq'])
-comp['rdq_temp'] = comp.groupby(['ncusip'])['rdq'].shift(-1)  # compare next quarter's announcement date with jdate
+comp['rdq_temp'] = comp.groupby(['cusip'])['rdq'].shift(-1)  # compare next quarter's announcement date with jdate
 comp['rdq_temp'] = np.where(comp['rdq_temp'].isnull(), comp['jdate'], comp['rdq_temp'])  # if rdq is NaN, let it be jdate
 comp['ibq_diff'] = comp['jdate'] - comp['rdq_temp']  # compare next quarter's announcement date with jdate
 comp['ibq_diff'] = comp['ibq_diff'].dt.days
-comp['ibq_new'] = comp.groupby(['ncusip'])['ibq'].shift(-1)  # next quarter's ibq
+comp['ibq_new'] = comp.groupby(['cusip'])['ibq'].shift(-1)  # next quarter's ibq
 comp = comp.rename(columns={'ibq': 'ibq_old'})  # original ibq
 
 '''
@@ -724,7 +724,7 @@ comp['ibq'] = np.where(comp['ibq'].isnull(), comp['ibq_old'], comp['ibq'])  # fo
 
 # merge ccm2 and crsp2
 # crsp2['jdate'] = crsp2['monthend']
-data_rawq = pd.merge(crsp2, comp, how='inner', on=['ncusip', 'jdate'])
+data_rawq = pd.merge(crsp500, comp, how='inner', on=['cusip', 'jdate'])
 
 # filter exchcd & shrcd
 data_rawq = data_rawq[((data_rawq['exchcd'] == 1) | (data_rawq['exchcd'] == 2) | (data_rawq['exchcd'] == 3)) &
@@ -747,15 +747,15 @@ data_rawq = data_rawq.dropna(subset=['me'])
 
 # deal with the duplicates
 '''
-permno를 ncusip으로 변경해서 적용
+permno를 cusip으로 변경해서 적용
 linkprim 제거
 '''
-data_rawq.loc[data_rawq.groupby(['datadate', 'ncusip'], as_index=False).nth([0]).index, 'temp'] = 1
+data_rawq.loc[data_rawq.groupby(['datadate', 'cusip'], as_index=False).nth([0]).index, 'temp'] = 1
 data_rawq = data_rawq[data_rawq['temp'].notna()]
-data_rawq.loc[data_rawq.groupby(['ncusip', 'yearend', 'datadate'], as_index=False).nth([-1]).index, 'temp'] = 1
+data_rawq.loc[data_rawq.groupby(['cusip', 'yearend', 'datadate'], as_index=False).nth([-1]).index, 'temp'] = 1
 data_rawq = data_rawq[data_rawq['temp'].notna()]
 
-data_rawq = data_rawq.sort_values(by=['ncusip', 'jdate'])
+data_rawq = data_rawq.sort_values(by=['cusip', 'jdate'])
 
 
 ## Quarterly Variables 
@@ -1092,7 +1092,7 @@ crsp_mom = conn.raw_sql("""
                         select permno, date, ret, retx, prc, shrout, vol
                         from crsp.msf
                         where date >= '01/01/1996'
-                        and date <= '12/31/2000'
+                        and date <= '12/31/2021'
                         """)
 
 crsp_mom['permno'] = crsp_mom['permno'].astype(int)
@@ -1247,7 +1247,7 @@ data_rawa['adm'] = data_rawa['xad']/data_rawa['me']
 data_rawa['dy'] = data_rawa['dvt']/data_rawa['me']
 
 # Annual Accounting Variables
-chars_a = data_rawa[['comnam','ticker','cusip', 'ncusip', 'gvkey', 'permno', 'exchcd', 'shrcd', 'datadate', 'jdate',
+chars_a = data_rawa[['comnam','ticker','cusip', 'gvkey', 'permno', 'exchcd', 'shrcd', 'datadate', 'jdate',
                      'sic', 'ret', 'retx', 'retadj', 'acc', 'agr', 'bm', 'cfp', 'ep', 'ni', 'op',
                      'rsup', 'cash', 'chcsho',
                      'rd', 'cashdebt', 'pctacc', 'gma', 'lev', 'rdm', 'adm', 'sgr', 'sp', 'invest', 'roe',
@@ -1262,9 +1262,9 @@ chars_a.reset_index(drop=True, inplace=True)
 
 print('chars_a')
 print('comnam', len(chars_a['comnam'].unique()))
-print('permno', len(chars_a['permno'].unique()))
 print('ticker', len(chars_a['ticker'].unique()))
-print('ncusip', len(chars_a['ncusip'].unique()))
+print('permno', len(chars_a['permno'].unique()))
+print('cusip', len(chars_a['cusip'].unique()))
 
 ### Quarterly
 
@@ -1311,12 +1311,13 @@ chars_q.reset_index(drop=True, inplace=True)
 
 print('data_rawq')
 print('comnam', len(data_rawq['comnam'].unique()))
-print('permno', len(data_rawq['permno'].unique()))
 print('ticker', len(data_rawq['ticker'].unique()))
-print('ncusip', len(data_rawq['ncusip'].unique()))
+print('permno', len(data_rawq['permno'].unique()))
+print('cusip', len(data_rawq['cusip'].unique()))
 
-with open('chars_a_60_sp500.feather', 'wb') as f:
+
+with open('../feather_files/chars_a_60_cusip.feather', 'wb') as f:
     feather.write_feather(chars_a, f)
 
-with open('chars_q_60_sp500.feather', 'wb') as f:
+with open('../feather_files/chars_q_60_cusip.feather', 'wb') as f:
     feather.write_feather(chars_q, f)
