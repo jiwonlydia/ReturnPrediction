@@ -222,5 +222,5 @@ crsp = crsp.rename(columns={'rvar': 'rvar_ff3'})
 crsp = crsp.reset_index(drop=True)
 crsp = crsp[['permno', 'date', 'rvar_ff3']]
 
-with open('rvar_ff3.feather', 'wb') as f:
+with open('../feather_files/rvar_ff3.feather', 'wb') as f:
     feather.write_feather(crsp, f)
