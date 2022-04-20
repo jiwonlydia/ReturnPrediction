@@ -6,7 +6,7 @@ import pickle as pkl
 import pyarrow.feather as feather
 from pandas.tseries.offsets import *
 
-with open('../feather_files/chars_a_60_sp500.feather', 'rb') as f:
+with open('../feather_files/chars_a_60_cusip.feather', 'rb') as f:
     chars_a = feather.read_feather(f)
 
 chars_a = chars_a.dropna(subset=['permno'])
